@@ -1,9 +1,0 @@
-grammar org.xtext.example.mydsl.MathCompiler with org.eclipse.xtext.common.Terminals
-
-generate mathCompiler "http://www.xtext.org/example/mydsl/MathCompiler"
-
-Model:
-	greetings+=Greeting*;
-	
-Greeting:
-	'Hello' name=ID '!';
