@@ -1,0 +1,48 @@
+grammar org.xtext.mdsd.MathCompiler with org.eclipse.xtext.common.Terminals
+
+generate mathCompiler "http://www.xtext.org/mdsd/MathCompiler"
+
+MathExp:
+	'result' 'is' exp=Exp
+;
+
+Exp returns Expression: 
+	Factors ({Binary.left=current} operator=AddSubOperator right=Factors)* 
+;
+
+Factors returns Expression:
+	FunctionalBind ({Binary.left=current} operator=MultDivOperator right=FunctionalBind)* 
+;
+
+MultDivOperator returns MathOperator:
+	{Mult} '*' | {Divi} '/'
+;
+
+
+AddSubOperator returns MathOperator:
+	{Plus} '+' | {Minus} '-'
+;
+
+Primitive returns Expression:
+	Constant | Parenthesis | VarReference		
+;
+
+VarReference:
+	variable=[Variable]
+;
+
+FunctionalBind returns Expression:
+	 {FunctionalBind} 'let' variable=Variable 'in' body=Exp ';' | Primitive
+;
+
+Variable:
+	name=ID '=' expression=Exp
+;
+
+Parenthesis:
+	'(' expression=Exp ')'	
+;
+
+Constant:
+	value=INT
+;
