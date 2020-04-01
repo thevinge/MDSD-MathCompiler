@@ -13,12 +13,14 @@ import org.xtext.mdsd.mathCompiler.Minus
 import org.xtext.mdsd.mathCompiler.Mult
 import org.xtext.mdsd.mathCompiler.Divi
 import org.xtext.mdsd.mathCompiler.Binary
-import javax.swing.JOptionPane
 import org.xtext.mdsd.mathCompiler.VarReference
 import org.xtext.mdsd.mathCompiler.Variable
 import org.xtext.mdsd.mathCompiler.FunctionalBind
 import org.xtext.mdsd.mathCompiler.Parenthesis
 import org.xtext.mdsd.mathCompiler.Constant
+import org.xtext.mdsd.mathCompiler.MathProgram
+import org.xtext.mdsd.mathCompiler.ExternalDef
+import org.xtext.mdsd.mathCompiler.Ext
 
 /**
  * Generates code from your model files on save.
@@ -29,68 +31,70 @@ class MathCompilerGenerator extends AbstractGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 
-		val math = resource.allContents.filter(MathExp).next
-		val result = math.compute
-		System.out.println("Math expression = " + math.display)
-		// For +1 score, replace with hovering, see Bettini Chapter 8
-		JOptionPane.showMessageDialog(null, "result = " + result, "Math Language", JOptionPane.INFORMATION_MESSAGE)
+		val Program = resource.allContents.filter(MathProgram).next
+		
+		fsa.generateFile("MathProgram.java",Program.generateMathProgram)
+	}
+	
+	def CharSequence generateMathProgram(MathProgram program){
+		'''
+		// Generated file
+		import java.util.*;
+		
+		public class MathProgram {
+			
+			«IF program.declarations.filter(ExternalDef).size > 0»
+			public static class Externals {
+				«FOR ExtDef : program.declarations.filter(ExternalDef)»
+				public int «ExtDef.name»(«FOR parameter : ExtDef.parameters SEPARATOR ','»int «parameter.varName»«ENDFOR»);
+				«ENDFOR»
+			}
+			
+			privat Externals externals;
+			
+			public MathProgram(Externals _externals){
+				externals = _externals;	
+			}
+			«ENDIF»
+			«IF program.declarations.filter(ExternalDef).size == 0»
+			public MathProgram(){}
+			«ENDIF»
+			
+			public void compute(){
+				«FOR Exp : program.declarations.filter(MathExp)»
+				System.out.println("«Exp.name» = " + «Exp.compileExp»);
+				«ENDFOR»
+			}
+		}	
+		'''
 	}
 
-	def int compute(MathExp math) {
+	def CharSequence compileExp(MathExp math) {'''(«math.exp.compileExp»)'''}
 
-		math.exp.computeExp
+	def dispatch CharSequence compileExp(Binary binary) {
+		'''«binary.left.compileExp» «binary.operator.compileOp» «binary.right.compileExp»'''
 	}
 
-	def dispatch int computeExp(Binary exp) {
-		val left = exp.left.computeExp
-		switch exp.operator {
-			Plus: left + exp.right.computeExp
-			Minus: left - exp.right.computeExp
-			Mult: left * exp.right.computeExp
-			Divi: left / exp.right.computeExp
-			default: left
-		}
+	def dispatch CharSequence compileExp(Constant num) { '''«num.value»''' }
+
+	def dispatch CharSequence compileExp(Parenthesis parenthesis) { '''(«parenthesis.expression.compileExp»)''' }
+
+	def dispatch CharSequence compileExp(FunctionalBind functional) {
+		'''«functional.body.compileExp»'''
 	}
 
-	def dispatch int computeExp(FunctionalBind reference) {
-		reference.body.computeExp
+	def dispatch CharSequence compileExp(VarReference reference) { '''«reference.variable.compileExp»''' }
+
+	def dispatch CharSequence compileExp(Variable variable) { '''«variable.expression.compileExp»''' }
+
+	def dispatch CharSequence compileOp(Plus op) { '''+''' }
+
+	def dispatch CharSequence compileOp(Minus op) { '''-''' }
+
+	def dispatch CharSequence compileOp(Mult op) { '''*''' }
+
+	def dispatch CharSequence compileOp(Divi op) { '''/''' }
+	def dispatch CharSequence compileExp(Ext ext){
+		'''externals.«ext.external.name»(«FOR arg: ext.arguments SEPARATOR ','»«arg»«ENDFOR»'''
 	}
-
-	def dispatch int computeExp(VarReference reference) {
-		reference.variable.expression.computeExp
-	}
-
-	def dispatch int computeExp(Constant constant) {
-		constant.value
-	}
-
-	def dispatch int computeExp(Parenthesis parenthesis) {
-		parenthesis.expression.computeExp
-	}
-
-	def CharSequence display(MathExp math) '''«math.exp.displayExp»'''
-
-	def dispatch CharSequence displayExp(Binary binary) {
-		'''«binary.left.displayExp» «binary.operator.displayOp» «binary.right.displayExp»'''
-	}
-
-	def dispatch CharSequence displayExp(Constant num) { '''«num.value»''' }
-
-	def dispatch CharSequence displayExp(Parenthesis parenthesis) { '''(«parenthesis.expression.displayExp»)''' }
-
-	def dispatch CharSequence displayExp(FunctionalBind functional) {
-		'''let «functional.variable.displayExp» in («functional.body.displayExp»);'''
-	}
-
-	def dispatch CharSequence displayExp(VarReference reference) { '''«reference.variable.name»''' }
-
-	def dispatch CharSequence displayExp(Variable variable) { '''«variable.name» = «variable.expression.displayExp»''' }
-
-	def dispatch CharSequence displayOp(Plus op) { '''+''' }
-
-	def dispatch CharSequence displayOp(Minus op) { '''-''' }
-
-	def dispatch CharSequence displayOp(Mult op) { '''*''' }
-
-	def dispatch CharSequence displayOp(Divi op) { '''/''' }
 }

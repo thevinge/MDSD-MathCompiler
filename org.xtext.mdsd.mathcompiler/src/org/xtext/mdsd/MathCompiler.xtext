@@ -2,8 +2,25 @@ grammar org.xtext.mdsd.MathCompiler with org.eclipse.xtext.common.Terminals
 
 generate mathCompiler "http://www.xtext.org/mdsd/MathCompiler"
 
+
+MathProgram:
+	declarations+=Declaration*
+;
+
+Declaration:
+	ExternalDef | MathExp	
+;
+
+ExternalDef:
+	'external' name=ID '(' parameters+=Parameter (',' parameters+=Parameter)* ')'			
+;
+
+Parameter:
+	varName=ID	
+;
+
 MathExp:
-	'result' 'is' exp=Exp
+	'result' name=STRING 'is' exp=Exp
 ;
 
 Exp returns Expression: 
@@ -24,8 +41,17 @@ AddSubOperator returns MathOperator:
 ;
 
 Primitive returns Expression:
-	Constant | Parenthesis | VarReference		
+	Constant | Parenthesis | VarReference | ExternalReference		
 ;
+
+ExternalReference returns Expression: 
+	{Ext} external=[ExternalDef] '(' arguments+=Argument (',' arguments+=Argument)* ')'	
+;
+
+Argument:
+	INT
+;
+
 
 VarReference:
 	variable=[Variable]
