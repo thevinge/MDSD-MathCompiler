@@ -44,13 +44,13 @@ class MathCompilerGenerator extends AbstractGenerator {
 		public class MathProgram {
 			
 			«IF program.declarations.filter(ExternalDef).size > 0»
-			public static class Externals {
+			public static interface Externals {
 				«FOR ExtDef : program.declarations.filter(ExternalDef)»
 				public int «ExtDef.name»(«FOR parameter : ExtDef.parameters SEPARATOR ','»int «parameter.varName»«ENDFOR»);
 				«ENDFOR»
 			}
 			
-			privat Externals externals;
+			private Externals externals;
 			
 			public MathProgram(Externals _externals){
 				externals = _externals;	
@@ -69,7 +69,7 @@ class MathCompilerGenerator extends AbstractGenerator {
 		'''
 	}
 
-	def CharSequence compileExp(MathExp math) {'''(«math.exp.compileExp»)'''}
+	def dispatch CharSequence compileExp(MathExp math) {'''(«math.exp.compileExp»)'''}
 
 	def dispatch CharSequence compileExp(Binary binary) {
 		'''«binary.left.compileExp» «binary.operator.compileOp» «binary.right.compileExp»'''
@@ -95,6 +95,6 @@ class MathCompilerGenerator extends AbstractGenerator {
 
 	def dispatch CharSequence compileOp(Divi op) { '''/''' }
 	def dispatch CharSequence compileExp(Ext ext){
-		'''externals.«ext.external.name»(«FOR arg: ext.arguments SEPARATOR ','»«arg»«ENDFOR»'''
+		'''externals.«ext.external.name»(«FOR arg: ext.arguments SEPARATOR ','»«arg»«ENDFOR»)'''
 	}
 }
