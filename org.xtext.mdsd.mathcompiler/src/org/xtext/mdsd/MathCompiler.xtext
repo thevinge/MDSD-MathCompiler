@@ -58,7 +58,7 @@ VarReference:
 ;
 
 FunctionalBind returns Expression:
-	 {FunctionalBind} 'let' variable=Variable 'in' body=Exp ';' | Primitive
+	 {Primitive} 'let' variable=Variable 'in' body=Exp ';' | Primitive
 ;
 
 Variable:

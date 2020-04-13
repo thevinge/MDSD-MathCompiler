@@ -15,12 +15,12 @@ import org.xtext.mdsd.mathCompiler.Divi
 import org.xtext.mdsd.mathCompiler.Binary
 import org.xtext.mdsd.mathCompiler.VarReference
 import org.xtext.mdsd.mathCompiler.Variable
-import org.xtext.mdsd.mathCompiler.FunctionalBind
 import org.xtext.mdsd.mathCompiler.Parenthesis
 import org.xtext.mdsd.mathCompiler.Constant
 import org.xtext.mdsd.mathCompiler.MathProgram
 import org.xtext.mdsd.mathCompiler.ExternalDef
 import org.xtext.mdsd.mathCompiler.Ext
+import org.xtext.mdsd.mathCompiler.Primitive
 
 /**
  * Generates code from your model files on save.
@@ -79,7 +79,7 @@ class MathCompilerGenerator extends AbstractGenerator {
 
 	def dispatch CharSequence compileExp(Parenthesis parenthesis) { '''(«parenthesis.expression.compileExp»)''' }
 
-	def dispatch CharSequence compileExp(FunctionalBind functional) {
+	def dispatch CharSequence compileExp(Primitive functional) {
 		'''«functional.body.compileExp»'''
 	}
 
