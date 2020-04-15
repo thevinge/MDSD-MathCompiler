@@ -14,6 +14,7 @@ import org.xtext.mdsd.mathCompiler.Expression
 
 import org.xtext.mdsd.mathCompiler.MathExp
 import org.xtext.mdsd.mathCompiler.MathCompilerPackage
+import org.xtext.mdsd.mathCompiler.Primitive
 
 /**
  * This class contains custom scoping description.
@@ -22,27 +23,27 @@ import org.xtext.mdsd.mathCompiler.MathCompilerPackage
  * on how and when to use it.
  */
 class MathCompilerScopeProvider extends AbstractMathCompilerScopeProvider {
-//	override getScope(EObject context, EReference reference) {
-//		if (reference == MathCompilerPackage.eINSTANCE.varReference_Variable) {
-//			return context.scope
-//		}
-//		return super.getScope(context, reference)
-//	}
-//	
-//	def private IScope getScope(EObject context) {
-//		val container = context.eContainer
-//		
-//		return switch (container) {
-//			
-//			MathExp: Scopes.scopeFor(
-//				container.eContents.filter(Variable))
-//					
-//			FunctionalBind case context instanceof Expression: Scopes.scopeFor(
-//				container.variable.singleton,
-//				container.scope
-//			)
-//			default: container.scope
-//			
-//		}
-//	}
+	override getScope(EObject context, EReference reference) {
+		if (reference == MathCompilerPackage.eINSTANCE.varReference_Variable) {
+			return context.scope
+		}
+		return super.getScope(context, reference)
+	}
+	
+	def private IScope getScope(EObject context) {
+		val container = context.eContainer
+		
+		return switch (container) {
+			
+			MathExp: Scopes.scopeFor(
+				container.eContents.filter(Variable))
+					
+			Primitive case context instanceof Expression: Scopes.scopeFor(
+				container.variable.singleton,
+				container.scope
+			)
+			default: container.scope
+			
+		}
+	}
 }
